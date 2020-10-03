@@ -50,13 +50,13 @@ int main(int argc, char** argv)
     newtio.c_lflag = 0;
 
     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
+    newtio.c_cc[VMIN]     = 1;   /* blocking read until 1 char received */
 
 
 
   /* 
     VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
-    leitura do(s) próximo(s) caracter(es)
+    leitura do(s) prï¿½ximo(s) caracter(es)
   */
 
 
@@ -70,21 +70,24 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-
-    while (STOP==FALSE) {       /* loop for input */
-      res = read(fd,buf,255);   /* returns after 5 chars have been input */
-      buf[res]=0;               /* so we can printf... */
-      printf(":%s:%d\n", buf, res);
-      if (buf[0]=='z') STOP=TRUE;
+    char caracter;
+    int pos = 0;
+    while (STOP == FALSE) {       /* loop for input */
+      res = read(fd,&caracter,1);   /* returns after 1 char has been input */
+      if (res < 0)
+        printf("Error reading\n");
+      buf[pos] = caracter;
+      pos++;
+      if (caracter == '\0')
+        STOP = TRUE;
     }
 
+    printf("Message received: %s\n", buf);
+    printf("Bytes received: %d\n", pos);
 
+    write(fd, buf, pos);
 
-  /* 
-    O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
-  */
-
-
+    sleep(1);
 
     tcsetattr(fd,TCSANOW,&oldtio);
     close(fd);
